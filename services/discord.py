@@ -56,6 +56,7 @@ class DiscordNotifier:
                     )
                     return False
                 time.sleep(2)
+
     @staticmethod
     def _build_payload(job: JobPosting) -> dict:
         """
@@ -131,16 +132,16 @@ class DiscordNotifier:
                 }
             ]
         }
-    
+
     @staticmethod
     def _get_embed_color(job: JobPosting) -> int:
         if job.visa_sponsorship and job.remote_policy == "Remote":
-            return 0xFFD700      # Gold
+            return 0xFFD700  # Gold
 
         if job.visa_sponsorship:
-            return 0x2ECC71      # Green
+            return 0x2ECC71  # Green
 
         if job.remote_policy == "Remote":
-            return 0x3498DB      # Blue
+            return 0x3498DB  # Blue
 
-        return 0x95A5A6          # Gray
+        return 0x95A5A6  # Gray
