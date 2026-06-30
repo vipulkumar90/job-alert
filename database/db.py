@@ -9,6 +9,8 @@ This module is responsible only for:
 import sqlite3
 from pathlib import Path
 
+from utils.logger import logger
+
 # Path to the SQLite database file.
 DATABASE_PATH = Path(__file__).parent / "jobs.db"
 
@@ -28,21 +30,26 @@ def initialize_database() -> None:
     Create the required database tables if they do not already exist.
     """
 
-    with get_connection() as conn:
-        cursor = conn.cursor()
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS jobs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                company TEXT NOT NULL,
-                location TEXT,
-                url TEXT NOT NULL,
-                description TEXT,
-                posted_date TEXT,
-                source TEXT NOT NULL,
-                hash TEXT NOT NULL UNIQUE
-            )
-        """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS jobs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    company TEXT NOT NULL,
+                    location TEXT,
+                    url TEXT NOT NULL,
+                    description TEXT,
+                    posted_date TEXT,
+                    source TEXT NOT NULL,
+                    hash TEXT NOT NULL UNIQUE
+                )
+            """)
 
-        conn.commit()
+            conn.commit()
+
+    except sqlite3.Error:
+        logger.exception("Failed to initialize database")
+        raise

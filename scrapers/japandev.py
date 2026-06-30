@@ -1,7 +1,10 @@
+import time
+
 from playwright.sync_api import sync_playwright
 
 from models.job_posting import JobPosting
 from scrapers.base import BaseScraper
+from utils.logger import logger
 
 
 class JapanDevScraper(BaseScraper):
@@ -15,50 +18,76 @@ class JapanDevScraper(BaseScraper):
     COMPANY_SELECTOR = ".job-item__contract-type"
 
     def scrape(self) -> list[JobPosting]:
-        jobs: list[JobPosting] = []
+        logger.info("Starting JapanDev scraper")
 
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
-            page = browser.new_page()
+        MAX_RETRIES = 3
 
-            page.goto(self.JOBS_URL)
-            page.wait_for_load_state("networkidle")
+        for attempt in range(MAX_RETRIES):
 
-            cards = page.locator(self.CARD_SELECTOR)
+            jobs: list[JobPosting] = []
 
-            for card in cards.all():
-                title = card.locator(self.TITLE_SELECTOR).inner_text().strip()
+            try:
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=False)
+                    page = browser.new_page()
 
-                company = card.locator(
-                    self.COMPANY_SELECTOR
-                ).inner_text().strip()
+                    page.goto(self.JOBS_URL)
+                    page.wait_for_load_state("networkidle")
 
-                location = (
-                    card.locator(
-                        'xpath=.//img[@alt="location-icon"]/following-sibling::div[@class="job__tag-desc"]'
+                    cards = page.locator(self.CARD_SELECTOR)
+
+                    for card in cards.all():
+                        title = card.locator(self.TITLE_SELECTOR).inner_text().strip()
+
+                        company = (
+                            card.locator(self.COMPANY_SELECTOR).inner_text().strip()
+                        )
+
+                        location = (
+                            card.locator(
+                                'xpath=.//img[@alt="location-icon"]/following-sibling::div[@class="job__tag-desc"]'
+                            )
+                            .inner_text()
+                            .strip()
+                        )
+
+                        relative_url = card.locator(self.TITLE_SELECTOR).get_attribute(
+                            "href"
+                        )
+
+                        url = f"{self.BASE_URL}{relative_url}"
+
+                        jobs.append(
+                            JobPosting(
+                                title=title,
+                                company=company,
+                                location=location,
+                                url=url,
+                                description="",
+                                posted_date="",
+                                source="JapanDev",
+                            )
+                        )
+
+                    browser.close()
+
+                logger.info("JapanDev scraper found %d jobs", len(jobs))
+                return jobs
+
+            except Exception:
+
+                if attempt == MAX_RETRIES - 1:
+                    logger.exception(
+                        "JapanDev scraper failed after %d attempts", MAX_RETRIES
                     )
-                    .inner_text()
-                    .strip()
+                    return []
+
+                logger.warning(
+                    "JapanDev scraper failed (attempt %d/%d). Retrying in 2 seconds...",
+                    attempt + 1,
+                    MAX_RETRIES,
                 )
 
-                relative_url = card.locator(
-                    self.TITLE_SELECTOR
-                ).get_attribute("href")
+                time.sleep(2)
 
-                url = f"{self.BASE_URL}{relative_url}"
-
-                jobs.append(
-                    JobPosting(
-                        title=title,
-                        company=company,
-                        location=location,
-                        url=url,
-                        description="",
-                        posted_date="",
-                        source="JapanDev",
-                    )
-                )
-
-            browser.close()
-
-        return jobs
+        return []

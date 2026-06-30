@@ -8,6 +8,7 @@ independent of any specific job board.
 
 from dataclasses import dataclass
 
+
 @dataclass
 class JobPosting:
     """

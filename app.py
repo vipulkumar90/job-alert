@@ -1,26 +1,42 @@
 from database.db import initialize_database
 from scrapers.japandev import JapanDevScraper
-from services.storage import Storage
 from services.discord import DiscordNotifier
+from services.storage import Storage
+from utils.logger import logger
 
 
-def main():
+def main() -> None:
+    try:
+        successful = 0
 
-    initialize_database()
+        logger.info("Application Started")
 
-    scraper = JapanDevScraper()
-    storage = Storage()
-    notifier = DiscordNotifier()
+        initialize_database()
 
-    jobs = scraper.scrape()
+        scraper = JapanDevScraper()
+        storage = Storage()
+        notifier = DiscordNotifier()
 
-    new_jobs = storage.save_all(jobs)
+        jobs = scraper.scrape()
+        logger.info("Found %d jobs", len(jobs))
 
-    print(f"Found: {len(jobs)} jobs")
-    print(f"Inserted: {len(new_jobs)} jobs")
+        new_jobs = storage.save_all(jobs)
+        logger.info("%d new jobs inserted", len(new_jobs))
 
-    for job in new_jobs:
-        notifier.send(job)
+        for job in new_jobs[:2]:
+            if notifier.send(job):
+                successful += 1
+
+        logger.info(
+            "Successfully sent %d/%d Discord notifications",
+            successful,
+            len(new_jobs),
+        )
+
+        logger.info("Application finished")
+
+    except Exception:
+        logger.exception("Application terminated unexpectedly")
 
 
 if __name__ == "__main__":

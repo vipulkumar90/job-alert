@@ -8,9 +8,11 @@ Responsibilities:
 """
 
 import hashlib
+import sqlite3
 
 from database.db import get_connection
 from models.job_posting import JobPosting
+from utils.logger import logger
 
 
 class Storage:
@@ -72,42 +74,50 @@ class Storage:
         """
 
         job_hash = self.generate_hash(job)
+        logger.debug("Saving job '%s'", job.title)
 
         if self.job_exists(job_hash):
+            logger.debug("Duplicate skipped '%s'", job.title)
             return False
 
-        with get_connection() as conn:
-            cursor = conn.cursor()
+        try:
+            with get_connection() as conn:
+                cursor = conn.cursor()
 
-            cursor.execute(
-                """
-                INSERT INTO jobs (
-                    title,
-                    company,
-                    location,
-                    url,
-                    description,
-                    posted_date,
-                    source,
-                    hash
+                cursor.execute(
+                    """
+                    INSERT INTO jobs (
+                        title,
+                        company,
+                        location,
+                        url,
+                        description,
+                        posted_date,
+                        source,
+                        hash
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        job.title,
+                        job.company,
+                        job.location,
+                        job.url,
+                        job.description,
+                        job.posted_date,
+                        job.source,
+                        job_hash,
+                    ),
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    job.title,
-                    job.company,
-                    job.location,
-                    job.url,
-                    job.description,
-                    job.posted_date,
-                    job.source,
-                    job_hash,
-                ),
-            )
 
-            conn.commit()
+                conn.commit()
 
-        return True
+            return True
+
+        except sqlite3.Error:
+            logger.exception
+            ("Failed to insert job '%s'", job.title)
+            return False
 
     def save_all(self, jobs: list[JobPosting]) -> int:
         """
@@ -125,5 +135,7 @@ class Storage:
         for job in jobs:
             if self.save(job):
                 new_jobs.append(job)
+
+        logger.info("%d new jobs inserted", len(new_jobs))
 
         return new_jobs

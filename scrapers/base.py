@@ -8,7 +8,9 @@ of the source website.
 """
 
 from abc import ABC, abstractmethod
+
 from models.job_posting import JobPosting
+
 
 class BaseScraper(ABC):
     """
