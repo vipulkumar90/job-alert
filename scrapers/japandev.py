@@ -65,8 +65,11 @@ class JapanDevScraper(BaseScraper):
                                 source="JapanDev",
                                 salary="",
                                 remote_policy="",
-                                visa_sponsorship=False,
-                                japanese_level=""
+                                visa_sponsorship=True,
+                                japanese_level="",
+                                employment_type="",
+                                team="",
+                                technologies=[]
                             )
                         )
 

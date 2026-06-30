@@ -56,6 +56,7 @@ class DiscordNotifier:
                     )
                     return False
                 time.sleep(2)
+
     @staticmethod
     def _build_payload(job: JobPosting) -> dict:
         """
@@ -68,6 +69,48 @@ class DiscordNotifier:
             Discord webhook payload.
         """
 
+        fields = [
+            {
+                "name": "🏢 Company",
+                "value": job.company,
+                "inline": True,
+            },
+            {
+                "name": "📍 Location",
+                "value": job.location,
+                "inline": True,
+            },
+        ]
+
+        # Only include optional fields if they have a value.
+        optional_fields = [
+            ("💰 Salary", job.salary),
+            ("🌏 Remote", job.remote_policy),
+            ("🗣 Japanese", job.japanese_level),
+            ("📅 Posted", job.posted_date),
+            ("🌐 Source", job.source),
+        ]
+
+        for name, value in optional_fields:
+            if value and value.strip():
+                fields.append(
+                    {
+                        "name": name,
+                        "value": value,
+                        "inline": True,
+                    }
+                )
+
+        # Only include visa sponsorship if it's available.
+        if job.visa_sponsorship:
+            fields.append(
+                {
+                    "name": "🎯 Visa",
+                    "value": "✅ Visa Sponsorship Available",
+                    "inline": True,
+                }
+            )
+
         return {
             "embeds": [
                 {
@@ -79,68 +122,23 @@ class DiscordNotifier:
                         else job.description
                     ),
                     "color": DiscordNotifier._get_embed_color(job),
-                    "fields": [
-                        {
-                            "name": "🏢 Company",
-                            "value": job.company,
-                            "inline": True,
-                        },
-                        {
-                            "name": "📍 Location",
-                            "value": job.location,
-                            "inline": True,
-                        },
-                        {
-                            "name": "💰 Salary",
-                            "value": job.salary or "Not specified",
-                            "inline": True,
-                        },
-                        {
-                            "name": "🌏 Remote",
-                            "value": job.remote_policy or "Not specified",
-                            "inline": True,
-                        },
-                        {
-                            "name": "🗣 Japanese",
-                            "value": job.japanese_level or "Not specified",
-                            "inline": True,
-                        },
-                        {
-                            "name": "🎯 Visa",
-                            "value": (
-                                "✅ Available"
-                                if job.visa_sponsorship
-                                else "❌ Not specified"
-                            ),
-                            "inline": True,
-                        },
-                        {
-                            "name": "📅 Posted",
-                            "value": job.posted_date or "Unknown",
-                            "inline": True,
-                        },
-                        {
-                            "name": "🌐 Source",
-                            "value": job.source,
-                            "inline": True,
-                        },
-                    ],
+                    "fields": fields,
                     "footer": {
                         "text": "Job Alert",
                     },
                 }
             ]
         }
-    
+
     @staticmethod
     def _get_embed_color(job: JobPosting) -> int:
         if job.visa_sponsorship and job.remote_policy == "Remote":
-            return 0xFFD700      # Gold
+            return 0xFFD700  # Gold
 
         if job.visa_sponsorship:
-            return 0x2ECC71      # Green
+            return 0x2ECC71  # Green
 
         if job.remote_policy == "Remote":
-            return 0x3498DB      # Blue
+            return 0x3498DB  # Blue
 
-        return 0x95A5A6          # Gray
+        return 0x95A5A6  # Gray

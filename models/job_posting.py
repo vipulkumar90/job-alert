@@ -42,7 +42,7 @@ class JobPosting:
     # Name of the source website (e.g., "JapanDev", "Green", "LinkedIn").
     source: str
 
-        # Salary or salary range (e.g., "¥6M–¥10M", "$120k-$150k").
+    # Salary or salary range (e.g., "¥6M–¥10M", "$120k-$150k").
     # Stored as a string because every website formats salary differently.
     salary: str
 
