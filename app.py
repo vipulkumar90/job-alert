@@ -1,5 +1,5 @@
 from database.db import initialize_database
-from scrapers.japandev import JapanDevScraper
+from scrapers.master import MasterScraper
 from services.discord import DiscordNotifier
 from services.storage import Storage
 from utils.logger import logger
@@ -13,11 +13,11 @@ def main() -> None:
 
         initialize_database()
 
-        scraper = JapanDevScraper()
+        master_scraper = MasterScraper()
         storage = Storage()
         notifier = DiscordNotifier()
 
-        jobs = scraper.scrape()
+        jobs = master_scraper.scrape()
         logger.info("Found %d jobs", len(jobs))
 
         new_jobs = storage.save_all(jobs)
