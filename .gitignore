@@ -264,3 +264,6 @@ build/
 
 # Temporary
 tmp/
+
+# Database file
+database/*.db
