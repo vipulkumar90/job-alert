@@ -1,3 +1,20 @@
+import hashlib
+import sqlite3
+import warnings
+
+from database.db import get_connection
+from models.job_posting import JobPosting
+from utils.logger import logger
+
+"""
+DEPRECATED
+
+This service has been replaced by JobRepository.
+
+It is kept temporarily for backwards compatibility and will be removed
+after all code has been migrated.
+"""
+
 """
 Storage service for JobPosting objects.
 
@@ -7,16 +24,16 @@ Responsibilities:
     - Save new jobs to the database.
 """
 
-import hashlib
-import sqlite3
-
-from database.db import get_connection
-from models.job_posting import JobPosting
-from utils.logger import logger
-
 
 class Storage:
     """Handles storing jobs in the SQLite database."""
+
+    def __init__(self):
+        warnings.warn(
+            "Storage is deprecated. Use JobRepository instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     @staticmethod
     def generate_hash(job: JobPosting) -> str:

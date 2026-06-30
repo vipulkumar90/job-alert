@@ -1,7 +1,7 @@
 from database.db import initialize_database
+from database.repository import JobRepository
 from scrapers.master import MasterScraper
 from services.discord import DiscordNotifier
-from services.storage import Storage
 from utils.logger import logger
 
 
@@ -14,13 +14,16 @@ def main() -> None:
         initialize_database()
 
         master_scraper = MasterScraper()
-        storage = Storage()
+        repository = JobRepository()
         notifier = DiscordNotifier()
 
+        new_jobs = []
         jobs = master_scraper.scrape()
+        for job in jobs:
+            if repository.save(job):
+                new_jobs.append(job)
         logger.info("Found %d jobs", len(jobs))
 
-        new_jobs = storage.save_all(jobs)
         logger.info("%d new jobs inserted", len(new_jobs))
 
         for job in new_jobs[:2]:
