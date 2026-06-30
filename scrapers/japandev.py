@@ -16,6 +16,7 @@ class JapanDevScraper(BaseScraper):
     CARD_SELECTOR = ".job-item__inner"
     TITLE_SELECTOR = ".job-item__title"
     COMPANY_SELECTOR = ".job-item__contract-type"
+    LOCATION_SELECTOR = 'xpath=.//img[@alt="location-icon"]/following-sibling::div[@class="job__tag-desc"]'
 
     def scrape(self) -> list[JobPosting]:
         logger.info("Starting JapanDev scraper")
@@ -44,11 +45,7 @@ class JapanDevScraper(BaseScraper):
                         )
 
                         location = (
-                            card.locator(
-                                'xpath=.//img[@alt="location-icon"]/following-sibling::div[@class="job__tag-desc"]'
-                            )
-                            .inner_text()
-                            .strip()
+                            card.locator(self.LOCATION_SELECTOR).inner_text().strip()
                         )
 
                         relative_url = card.locator(self.TITLE_SELECTOR).get_attribute(
@@ -66,6 +63,10 @@ class JapanDevScraper(BaseScraper):
                                 description="",
                                 posted_date="",
                                 source="JapanDev",
+                                salary="",
+                                remote_policy="",
+                                visa_sponsorship=False,
+                                japanese_level=""
                             )
                         )
 
