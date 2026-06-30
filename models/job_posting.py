@@ -41,3 +41,28 @@ class JobPosting:
 
     # Name of the source website (e.g., "JapanDev", "Green", "LinkedIn").
     source: str
+
+        # Salary or salary range (e.g., "¥6M–¥10M", "$120k-$150k").
+    # Stored as a string because every website formats salary differently.
+    salary: str
+
+    # Remote work policy (e.g., "Remote", "Hybrid", "On-site").
+    remote_policy: str
+
+    # Required Japanese proficiency
+    # (e.g., "None", "N2", "Business", "Fluent").
+    japanese_level: str
+
+    # Indicates whether the company offers visa sponsorship.
+    visa_sponsorship: bool
+
+    # Employment type
+    # (e.g., "Full-time", "Contract", "Internship").
+    employment_type: str
+
+    # Name of the hiring team or department, if available.
+    team: str
+
+    # Technologies, programming languages, or tools mentioned in the job.
+    # Examples: ["Python", "AWS", "Docker"]
+    technologies: list[str]

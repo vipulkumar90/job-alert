@@ -26,34 +26,7 @@ class DiscordNotifier:
             job: The JobPosting to send.
         """
 
-        payload = {
-            "embeds": [
-                {
-                    "title": "🚀 New Job Found!",
-                    "description": f"**{job.title}**",
-                    "url": job.url,
-                    "color": 0x2ECC71,  # Green
-                    "fields": [
-                        {
-                            "name": "🏢 Company",
-                            "value": job.company,
-                            "inline": True,
-                        },
-                        {
-                            "name": "📍 Location",
-                            "value": job.location,
-                            "inline": True,
-                        },
-                        {
-                            "name": "🌐 Source",
-                            "value": job.source,
-                            "inline": True,
-                        },
-                    ],
-                    "footer": {"text": "Job Alert"},
-                }
-            ]
-        }
+        payload = DiscordNotifier._build_payload(job)
 
         logger.info("Sending Discord notification")
         MAX_RETRIES = 3
@@ -83,3 +56,91 @@ class DiscordNotifier:
                     )
                     return False
                 time.sleep(2)
+    @staticmethod
+    def _build_payload(job: JobPosting) -> dict:
+        """
+        Build a Discord embed payload for a job posting.
+
+        Args:
+            job: JobPosting object.
+
+        Returns:
+            Discord webhook payload.
+        """
+
+        return {
+            "embeds": [
+                {
+                    "title": f"🚀 {job.title}",
+                    "url": job.url,
+                    "description": (
+                        job.description[:250] + "..."
+                        if len(job.description) > 250
+                        else job.description
+                    ),
+                    "color": DiscordNotifier._get_embed_color(job),
+                    "fields": [
+                        {
+                            "name": "🏢 Company",
+                            "value": job.company,
+                            "inline": True,
+                        },
+                        {
+                            "name": "📍 Location",
+                            "value": job.location,
+                            "inline": True,
+                        },
+                        {
+                            "name": "💰 Salary",
+                            "value": job.salary or "Not specified",
+                            "inline": True,
+                        },
+                        {
+                            "name": "🌏 Remote",
+                            "value": job.remote_policy or "Not specified",
+                            "inline": True,
+                        },
+                        {
+                            "name": "🗣 Japanese",
+                            "value": job.japanese_level or "Not specified",
+                            "inline": True,
+                        },
+                        {
+                            "name": "🎯 Visa",
+                            "value": (
+                                "✅ Available"
+                                if job.visa_sponsorship
+                                else "❌ Not specified"
+                            ),
+                            "inline": True,
+                        },
+                        {
+                            "name": "📅 Posted",
+                            "value": job.posted_date or "Unknown",
+                            "inline": True,
+                        },
+                        {
+                            "name": "🌐 Source",
+                            "value": job.source,
+                            "inline": True,
+                        },
+                    ],
+                    "footer": {
+                        "text": "Job Alert",
+                    },
+                }
+            ]
+        }
+    
+    @staticmethod
+    def _get_embed_color(job: JobPosting) -> int:
+        if job.visa_sponsorship and job.remote_policy == "Remote":
+            return 0xFFD700      # Gold
+
+        if job.visa_sponsorship:
+            return 0x2ECC71      # Green
+
+        if job.remote_policy == "Remote":
+            return 0x3498DB      # Blue
+
+        return 0x95A5A6          # Gray
