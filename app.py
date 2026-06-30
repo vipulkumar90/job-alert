@@ -2,6 +2,7 @@ from database.db import initialize_database
 from database.repository import JobRepository
 from scrapers.master import MasterScraper
 from services.discord import DiscordNotifier
+from services.job_filter import JobFilter
 from utils.logger import logger
 
 
@@ -26,7 +27,11 @@ def main() -> None:
 
         logger.info("%d new jobs inserted", len(new_jobs))
 
-        for job in new_jobs[:2]:
+        job_filter = JobFilter()
+
+        interesting_jobs = [job for job in new_jobs if job_filter.matches(job)]
+
+        for job in interesting_jobs[:2]:
             if notifier.send(job):
                 successful += 1
 
