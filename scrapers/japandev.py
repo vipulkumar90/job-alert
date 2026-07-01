@@ -69,7 +69,7 @@ class JapanDevScraper(BaseScraper):
                                 japanese_level="",
                                 employment_type="",
                                 team="",
-                                technologies=[]
+                                technologies=[],
                             )
                         )
 

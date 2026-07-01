@@ -11,6 +11,7 @@ import logging
 from models.job_posting import JobPosting
 from scrapers.base import BaseScraper
 from scrapers.japandev import JapanDevScraper
+from scrapers.tokyodev import TokyoDevScraper
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ class MasterScraper:
 
         self.scrapers: list[BaseScraper] = [
             JapanDevScraper(),
+            TokyoDevScraper(),
         ]
 
     def scrape(self) -> list[JobPosting]:

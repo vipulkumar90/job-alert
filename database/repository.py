@@ -274,3 +274,13 @@ class JobRepository:
                 job.title,
             )
             raise
+
+    def delete_all(self) -> None:
+        try:
+            with get_connection() as conn:
+                conn.execute("DELETE FROM jobs")
+                conn.commit()
+                logger.info("[DEV ONLY] ALL ROWS HAS BEEN DELETED")
+        except sqlite3.Error:
+            logger.exception("Failed to update delete all rows")
+            raise

@@ -16,11 +16,16 @@ keywords:
   - machine learning
   - dl
   - deep learning
+  - python
+  - web
+  - web JapanDev
+  - full stack
 
 # At least one location must match.
 locations:
   - Tokyo
   - Remote
+  - Not Specified
 
 # Empty list = allow all companies.
 companies: []
@@ -31,6 +36,7 @@ excluded_companies: []
 # Allow all if empty.
 sources:
   - JapanDev
+  - TokyoDev
 
 # Leave empty to ignore.
 required_technologies: []
