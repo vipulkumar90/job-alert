@@ -29,7 +29,10 @@ class JapanDevScraper(BaseScraper):
 
             try:
                 with sync_playwright() as p:
-                    browser = p.chromium.launch(headless=False)
+                    browser = p.chromium.launch(
+                        headless=True,
+                        args=["--no-sandbox"]
+                    )
                     page = browser.new_page()
 
                     page.goto(self.JOBS_URL)
