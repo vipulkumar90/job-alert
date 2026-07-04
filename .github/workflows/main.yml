@@ -1,4 +1,4 @@
-name: Post Daily Fact
+name: Job Alerts
 
 on:
   schedule:
