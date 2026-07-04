@@ -9,13 +9,21 @@ from __future__ import annotations
 import hashlib
 import sqlite3
 
-from database.db import get_connection
+from database.connection import get_connection, placeholder
 from models.job_posting import JobPosting
 from utils.logger import logger
+from config import DATABASE_PROVIDER
+
+PLACEHOLDER = '%s' if DATABASE_PROVIDER == "postgres" else '?'
 
 
 class JobRepository:
     """Provides CRUD operations for JobPosting objects."""
+
+    def __init__(self) -> None:
+        """Create a single database connection."""
+
+        self.conn = get_connection()
 
     @staticmethod
     def generate_hash(job: JobPosting) -> str:
@@ -43,18 +51,18 @@ class JobRepository:
         """
         logger.debug("Checking if job exists.")
         try:
-            with get_connection() as conn:
-                cursor = conn.cursor()
+            
+            cursor = self.conn.cursor()
 
-                cursor.execute(
-                    "SELECT 1 FROM jobs WHERE hash = ?",
-                    (job_hash,),
-                )
-                exists = cursor.fetchone() is not None
+            cursor.execute(
+                f"SELECT 1 FROM jobs WHERE hash = {PLACEHOLDER}",
+                (job_hash,),
+            )
+            exists = cursor.fetchone() is not None
 
-                logger.debug("Job exists: %s", exists)
+            logger.debug("Job exists: %s", exists)
 
-                return exists
+            return exists
 
         except sqlite3.Error:
             logger.exception("Failed to check if job exists.")
@@ -73,15 +81,10 @@ class JobRepository:
         try:
             job_hash = self.generate_hash(job)
 
-            if self.exists(job_hash):
-                logger.info("Duplicate skipped: %s", job.title)
-                return False
+            cursor = self.conn.cursor()
 
-            with get_connection() as conn:
-                cursor = conn.cursor()
-
-                cursor.execute(
-                    """
+            if DATABASE_PROVIDER == "postgres":
+                sql = f"""
                     INSERT INTO jobs (
                         title,
                         company,
@@ -92,24 +95,45 @@ class JobRepository:
                         source,
                         hash
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        job.title,
-                        job.company,
-                        job.location,
-                        job.url,
-                        job.description,
-                        job.posted_date,
-                        job.source,
-                        job_hash,
-                    ),
-                )
+                    VALUES ({placeholder(8)})
+                    ON CONFLICT (hash) DO NOTHING
+                """
+            else:
+                sql = f"""
+                    INSERT OR IGNORE INTO jobs (
+                        title,
+                        company,
+                        location,
+                        url,
+                        description,
+                        posted_date,
+                        source,
+                        hash
+                    )
+                    VALUES ({placeholder(8)})
+                """
 
-                conn.commit()
+            cursor.execute(
+                sql,
+                (
+                    job.title,
+                    job.company,
+                    job.location,
+                    job.url,
+                    job.description,
+                    job.posted_date,
+                    job.source,
+                    job_hash,
+                ),
+            )
+
+            self.conn.commit()
+
+            if cursor.rowcount == 0:
+                logger.info("Duplicate skipped: %s", job.title)
+                return False
 
             logger.info("Saved '%s'", job.title)
-
             return True
 
         except sqlite3.Error:
@@ -123,28 +147,29 @@ class JobRepository:
         """
         Retrieve a single job by hash.
         """
+        logger.info("Fetching a job")
 
         try:
-            with get_connection() as conn:
-                cursor = conn.cursor()
+            
+            cursor = self.conn.cursor()
 
-                cursor.execute(
-                    """
-                    SELECT
-                        title,
-                        company,
-                        location,
-                        url,
-                        description,
-                        posted_date,
-                        source
-                    FROM jobs
-                    WHERE hash = ?
-                    """,
-                    (job_hash,),
-                )
+            cursor.execute(
+                f"""
+                SELECT
+                    title,
+                    company,
+                    location,
+                    url,
+                    description,
+                    posted_date,
+                    source
+                FROM jobs
+                WHERE hash = {PLACEHOLDER}
+                """,
+                (job_hash,),
+            )
 
-                row = cursor.fetchone()
+            row = cursor.fetchone()
 
             if row is None:
                 return None
@@ -174,22 +199,22 @@ class JobRepository:
         jobs: list[JobPosting] = []
 
         try:
-            with get_connection() as conn:
-                cursor = conn.cursor()
+            
+            cursor = self.conn.cursor()
 
-                cursor.execute("""
-                    SELECT
-                        title,
-                        company,
-                        location,
-                        url,
-                        description,
-                        posted_date,
-                        source
-                    FROM jobs
-                    """)
+            cursor.execute("""
+                SELECT
+                    title,
+                    company,
+                    location,
+                    url,
+                    description,
+                    posted_date,
+                    source
+                FROM jobs
+                """)
 
-                rows = cursor.fetchall()
+            rows = cursor.fetchall()
 
             for row in rows:
                 jobs.append(
@@ -217,15 +242,15 @@ class JobRepository:
         logger.info("Deleting job.")
 
         try:
-            with get_connection() as conn:
-                cursor = conn.cursor()
+            
+            cursor = self.conn.cursor()
 
-                cursor.execute(
-                    "DELETE FROM jobs WHERE hash = ?",
-                    (job_hash,),
-                )
+            cursor.execute(
+                f"DELETE FROM jobs WHERE hash = {PLACEHOLDER}",
+                (job_hash,),
+            )
 
-                conn.commit()
+            self.conn.commit()
         except sqlite3.Error:
             logger.exception("Failed to delete job.")
             raise
@@ -238,35 +263,35 @@ class JobRepository:
 
         job_hash = self.generate_hash(job)
         try:
-            with get_connection() as conn:
-                cursor = conn.cursor()
+            
+            cursor = self.conn.cursor()
 
-                cursor.execute(
-                    """
-                    UPDATE jobs
-                    SET
-                        title = ?,
-                        company = ?,
-                        location = ?,
-                        url = ?,
-                        description = ?,
-                        posted_date = ?,
-                        source = ?
-                    WHERE hash = ?
-                    """,
-                    (
-                        job.title,
-                        job.company,
-                        job.location,
-                        job.url,
-                        job.description,
-                        job.posted_date,
-                        job.source,
-                        job_hash,
-                    ),
-                )
+            cursor.execute(
+                f"""
+                UPDATE jobs
+                SET
+                    title = {PLACEHOLDER},
+                    company = {PLACEHOLDER},
+                    location = {PLACEHOLDER},
+                    url = {PLACEHOLDER},
+                    description = {PLACEHOLDER},
+                    posted_date = {PLACEHOLDER},
+                    source = {PLACEHOLDER}
+                WHERE hash = {PLACEHOLDER}
+                """,
+                (
+                    job.title,
+                    job.company,
+                    job.location,
+                    job.url,
+                    job.description,
+                    job.posted_date,
+                    job.source,
+                    job_hash,
+                ),
+            )
 
-                conn.commit()
+            self.conn.commit()
 
         except sqlite3.Error:
             logger.exception(
@@ -277,10 +302,16 @@ class JobRepository:
 
     def delete_all(self) -> None:
         try:
-            with get_connection() as conn:
-                conn.execute("DELETE FROM jobs")
-                conn.commit()
-                logger.info("[DEV ONLY] ALL ROWS HAS BEEN DELETED")
+            
+            self.conn.execute("DELETE FROM jobs")
+            self.conn.commit()
+            logger.info("[DEV ONLY] ALL ROWS HAS BEEN DELETED")
         except sqlite3.Error:
             logger.exception("Failed to update delete all rows")
             raise
+    
+    def close(self) -> None:
+        """Close the database connection."""
+
+        self.conn.close()
+        logger.debug("Database connection closed.")
