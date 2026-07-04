@@ -32,7 +32,7 @@ def main() -> None:
 
         interesting_jobs = [job for job in new_jobs if job_filter.matches(job)]
 
-        for job in interesting_jobs[:2]:
+        for job in interesting_jobs:
             if notifier.send(job):
                 successful += 1
 
