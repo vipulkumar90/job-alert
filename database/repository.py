@@ -9,12 +9,12 @@ from __future__ import annotations
 import hashlib
 import sqlite3
 
+from config import DATABASE_PROVIDER
 from database.connection import get_connection, placeholder
 from models.job_posting import JobPosting
 from utils.logger import logger
-from config import DATABASE_PROVIDER
 
-PLACEHOLDER = '%s' if DATABASE_PROVIDER == "postgres" else '?'
+PLACEHOLDER = "%s" if DATABASE_PROVIDER == "postgres" else "?"
 
 
 class JobRepository:
@@ -51,7 +51,7 @@ class JobRepository:
         """
         logger.debug("Checking if job exists.")
         try:
-            
+
             cursor = self.conn.cursor()
 
             cursor.execute(
@@ -150,7 +150,7 @@ class JobRepository:
         logger.info("Fetching a job")
 
         try:
-            
+
             cursor = self.conn.cursor()
 
             cursor.execute(
@@ -199,7 +199,7 @@ class JobRepository:
         jobs: list[JobPosting] = []
 
         try:
-            
+
             cursor = self.conn.cursor()
 
             cursor.execute("""
@@ -242,7 +242,7 @@ class JobRepository:
         logger.info("Deleting job.")
 
         try:
-            
+
             cursor = self.conn.cursor()
 
             cursor.execute(
@@ -263,7 +263,7 @@ class JobRepository:
 
         job_hash = self.generate_hash(job)
         try:
-            
+
             cursor = self.conn.cursor()
 
             cursor.execute(
@@ -302,14 +302,14 @@ class JobRepository:
 
     def delete_all(self) -> None:
         try:
-            
+
             self.conn.execute("DELETE FROM jobs")
             self.conn.commit()
             logger.info("[DEV ONLY] ALL ROWS HAS BEEN DELETED")
         except sqlite3.Error:
             logger.exception("Failed to update delete all rows")
             raise
-    
+
     def close(self) -> None:
         """Close the database connection."""
 

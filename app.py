@@ -1,5 +1,5 @@
-from database.repository import JobRepository
 from database.initializer import initialize_database
+from database.repository import JobRepository
 from scrapers.master import MasterScraper
 from services.discord import DiscordNotifier
 from services.job_filter import JobFilter

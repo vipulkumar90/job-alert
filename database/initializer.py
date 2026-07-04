@@ -4,7 +4,7 @@ from pathlib import Path
 
 from config import DATABASE_PROVIDER
 from database.connection import database_exists, get_connection
-from utils.logger import logger 
+from utils.logger import logger
 
 SCHEMA_DIR = Path(__file__).parent / "schema"
 

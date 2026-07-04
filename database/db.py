@@ -28,6 +28,7 @@ def database_exists() -> bool:
 
     return exists
 
+
 def get_connection() -> sqlite3.Connection:
     """
     Create and return a connection to the SQLite database.
@@ -36,6 +37,7 @@ def get_connection() -> sqlite3.Connection:
         sqlite3.Connection: SQLite connection object.
     """
     return sqlite3.connect(DATABASE_PATH)
+
 
 # [Depreciated]
 # def initialize_database() -> None:
