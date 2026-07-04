@@ -3,7 +3,7 @@ from database.connection import get_connection
 
 def test_connection() -> None:
     try:
-        with get_connection() as conn:
+        with get_connection() as conn:  # noqa: F841
             print("✅ Connected to PostgreSQL!")
 
     except Exception as e:
