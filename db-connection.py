@@ -1,5 +1,6 @@
 from database.connection import get_connection
 
+
 def test_connection() -> None:
     try:
         with get_connection() as conn:
