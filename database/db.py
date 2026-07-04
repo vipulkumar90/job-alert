@@ -15,6 +15,19 @@ from utils.logger import logger
 DATABASE_PATH = Path(__file__).parent / "jobs.db"
 
 
+def database_exists() -> bool:
+    """
+    Check whether the SQLite database already exists.
+    """
+    exists = DATABASE_PATH.exists()
+
+    if exists:
+        logger.debug("Database found at '%s'.", DATABASE_PATH)
+    else:
+        logger.debug("Database does not exist.")
+
+    return exists
+
 def get_connection() -> sqlite3.Connection:
     """
     Create and return a connection to the SQLite database.
@@ -24,32 +37,32 @@ def get_connection() -> sqlite3.Connection:
     """
     return sqlite3.connect(DATABASE_PATH)
 
+# [Depreciated]
+# def initialize_database() -> None:
+#     """
+#     Create the required database tables if they do not already exist.
+#     """
 
-def initialize_database() -> None:
-    """
-    Create the required database tables if they do not already exist.
-    """
+#     try:
+#         with get_connection() as conn:
+#             cursor = conn.cursor()
 
-    try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
+#             cursor.execute("""
+#                 CREATE TABLE IF NOT EXISTS jobs (
+#                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+#                     title TEXT NOT NULL,
+#                     company TEXT NOT NULL,
+#                     location TEXT,
+#                     url TEXT NOT NULL,
+#                     description TEXT,
+#                     posted_date TEXT,
+#                     source TEXT NOT NULL,
+#                     hash TEXT NOT NULL UNIQUE
+#                 )
+#             """)
 
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS jobs (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    title TEXT NOT NULL,
-                    company TEXT NOT NULL,
-                    location TEXT,
-                    url TEXT NOT NULL,
-                    description TEXT,
-                    posted_date TEXT,
-                    source TEXT NOT NULL,
-                    hash TEXT NOT NULL UNIQUE
-                )
-            """)
+#             conn.commit()
 
-            conn.commit()
-
-    except sqlite3.Error:
-        logger.exception("Failed to initialize database")
-        raise
+#     except sqlite3.Error:
+#         logger.exception("Failed to initialize database")
+#         raise

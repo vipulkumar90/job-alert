@@ -40,7 +40,7 @@ class DiscordNotifier:
                 )
                 response.raise_for_status()
 
-                logger.info("%d Discord notifications sent", job.title)
+                logger.info("Discord notification sent for '%s'", job.title)
                 return True
 
             except requests.RequestException:
