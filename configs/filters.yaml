@@ -1,0 +1,51 @@
+# Keywords are matched against the job title and description.
+keywords:
+  - backend
+  - software engineer
+  - machine learning
+  - ai
+  - llm
+  - python
+  - data engineer
+  - .net
+  - dotnet
+  - web
+  - windows
+  - software
+  - ml
+  - machine learning
+  - dl
+  - deep learning
+  - python
+  - web
+  - web JapanDev
+  - full stack
+
+# At least one location must match.
+locations:
+  - Tokyo
+  - Remote
+  - Not Specified
+
+# Empty list = allow all companies.
+companies: []
+
+# Reject jobs from these companies.
+excluded_companies: []
+
+# Allow all if empty.
+sources:
+  - JapanDev
+  - TokyoDev
+
+# Leave empty to ignore.
+required_technologies: []
+
+# If true, only remote jobs are allowed.
+remote_only: false
+
+# Only notify when visa sponsorship is available.
+visa_sponsorship_only: false
+
+# Empty = ignore.
+minimum_salary: ""
