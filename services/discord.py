@@ -30,7 +30,10 @@ class DiscordNotifier:
 
         logger.info("Sending Discord notification")
         MAX_RETRIES = 3
-
+        logger.info(
+            "Discord webhook configured: %s",
+            DISCORD_WEBHOOK is not None,
+        )
         for attempt in range(MAX_RETRIES):
             try:
                 response = requests.post(
@@ -142,7 +145,7 @@ class DiscordNotifier:
             return 0x3498DB  # Blue
 
         return 0x95A5A6  # Gray
-    
+
     @staticmethod
     def send_batch(jobs: list[JobPosting]) -> bool:
         """
