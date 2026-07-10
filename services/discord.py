@@ -142,3 +142,104 @@ class DiscordNotifier:
             return 0x3498DB  # Blue
 
         return 0x95A5A6  # Gray
+    
+    @staticmethod
+    def send_batch(jobs: list[JobPosting]) -> bool:
+        """
+        Send multiple jobs in a single Discord message.
+        """
+
+        embeds = []
+
+        for job in jobs:
+            fields = [
+                {
+                    "name": "🏢 Company",
+                    "value": job.company,
+                    "inline": True,
+                },
+                {
+                    "name": "📍 Location",
+                    "value": job.location,
+                    "inline": True,
+                },
+            ]
+
+            optional_fields = [
+                ("💰 Salary", job.salary),
+                ("🌏 Remote", job.remote_policy),
+                ("🗣 Japanese", job.japanese_level),
+                ("📅 Posted", job.posted_date),
+                ("🌐 Source", job.source),
+            ]
+
+            for name, value in optional_fields:
+                if value and value.strip():
+                    fields.append(
+                        {
+                            "name": name,
+                            "value": value,
+                            "inline": True,
+                        }
+                    )
+
+            if job.visa_sponsorship:
+                fields.append(
+                    {
+                        "name": "🎯 Visa",
+                        "value": "✅ Visa Sponsorship Available",
+                        "inline": True,
+                    }
+                )
+
+            embeds.append(
+                {
+                    "title": f"🚀 {job.title}",
+                    "url": job.url,
+                    "description": (
+                        job.description[:250] + "..."
+                        if len(job.description) > 250
+                        else job.description
+                    ),
+                    "color": DiscordNotifier._get_embed_color(job),
+                    "fields": fields,
+                    "footer": {
+                        "text": "Job Alert",
+                    },
+                }
+            )
+
+        payload = {"embeds": embeds}
+
+        logger.info("Sending Discord notification (%d jobs)", len(jobs))
+
+        MAX_RETRIES = 3
+
+        for attempt in range(MAX_RETRIES):
+            response = None
+
+            try:
+                response = requests.post(
+                    DISCORD_WEBHOOK,
+                    json=payload,
+                    timeout=10,
+                )
+
+                response.raise_for_status()
+
+                logger.info(
+                    "Discord notification sent (%d jobs)",
+                    len(jobs),
+                )
+
+                return True
+
+            except requests.RequestException:
+                if response is not None:
+                    logger.error("Discord response: %s", response.text)
+
+                if attempt == MAX_RETRIES - 1:
+                    logger.exception("Failed to send Discord notification")
+                    return False
+
+                time.sleep(2)

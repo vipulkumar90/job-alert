@@ -32,14 +32,26 @@ def main() -> None:
 
         interesting_jobs = [job for job in new_jobs if job_filter.matches(job)]
 
-        for job in interesting_jobs:
-            if notifier.send(job):
+        total_jobs = len(interesting_jobs)
+
+        batch_size = 1
+        if total_jobs > 100:
+            batch_size = 10
+        elif total_jobs > 50:
+            batch_size = 5
+        elif total_jobs > 25:
+            batch_size = 2
+
+        successful = 0
+
+        for i in range(0, total_jobs, batch_size):
+            if notifier.send_batch(interesting_jobs[i : i + batch_size]):
                 successful += 1
 
         logger.info(
-            "Successfully sent %d/%d Discord notifications",
+            "Successfully sent %d Discord message(s) containing %d job(s)",
             successful,
-            len(new_jobs),
+            total_jobs,
         )
 
         logger.info("Application finished")
