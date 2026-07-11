@@ -3,7 +3,7 @@ name: Job Alerts
 on:
   schedule:
     # 09:00 JST, 12:00 JST, 20:00 JST
-    - cron: "0 */2 * * *"  
+    - cron: "0 */2 * * *"
   workflow_dispatch:
 
 jobs:
@@ -39,7 +39,7 @@ jobs:
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_SSLMODE=${{ secrets.POSTGRES_SSLMODE }}
 
-          DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK=${{ secrets.DISCORD_WEBHOOK }}
 
           LOG_LEVEL=${{ secrets.LOG_LEVEL }}
           EOF
